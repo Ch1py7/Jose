@@ -1,5 +1,4 @@
 import { supabase } from '@/supabase/client'
-import { insert } from '@/supabase/insert'
 import type { Client, Guild } from 'discord.js'
 
 export const updateGayOfTheDayRole = async (guild: Guild, newUserId: string) => {
@@ -20,7 +19,25 @@ export const updateGayOfTheDayRole = async (guild: Guild, newUserId: string) => 
 		try {
 			await member.roles.add(role)
 			console.log(`- ${member.user.tag} has the "${role.name}" role in "${guild.name}" server`)
-			await insert(newUserId, guild.id)
+			const { data, error } = await supabase
+				.from('gay_role_assignments')
+				.select('*')
+				.eq('user_id', newUserId)
+				.eq('guild_id', guild.id)
+
+			if (!error) {
+				data.forEach(async ({ id }) => {
+					await supabase.from('gay_role_assignments').delete().eq('id', id)
+				})
+			}
+
+			await supabase.from('gay_role_assignments').insert([
+				{
+					user_id: newUserId,
+					guild_id: guild.id,
+					assigned_at: new Date().toISOString(),
+				},
+			])
 			await scheduleRemoval(guild.client, newUserId, guild.id)
 		} catch (err) {
 			console.error('Failed to add role:', err)

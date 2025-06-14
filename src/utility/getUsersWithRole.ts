@@ -11,7 +11,7 @@ export const getUsersWithRole = async (client: Client, roleName = 'GAY OF THE DA
 			const membersWithRole = members.filter((member) => member.roles.cache.has(role.id))
 
 			membersWithRole.forEach((member) =>
-				console.log(`- ${member.user.tag} has the "${roleName}" role`)
+				console.log(`- ${member.user.tag} has the "${roleName}" role in "${fullGuild.name}" server`)
 			)
 		} catch (err) {
 			console.error(`Error fetching members for guild ${guildId}:`, err)
