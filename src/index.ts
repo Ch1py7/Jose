@@ -1,9 +1,13 @@
 import { Client, Events, GatewayIntentBits } from 'discord.js'
+import express from 'express'
 import { scheduleRemoval, updateGayOfTheDayRole } from './commands/updateGayOfTheDayRole'
 import { config } from './config'
 import { deployCommands } from './deployCommands'
 import { supabase } from './supabase/client'
 import { getUsersWithRole } from './utility/getUsersWithRole'
+
+const app = express()
+const port = 7777
 
 const usersId: string[] = []
 let moreThan3users = false
@@ -75,3 +79,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 })
 
 client.login(config.DISCORD_TOKEN)
+
+app.listen(port, () => {
+	console.log(`Server running on port ${port}`)
+})
