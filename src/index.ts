@@ -6,7 +6,7 @@ import { supabase } from './supabase/client'
 import { getUsersWithRole } from './utility/getUsersWithRole'
 
 const usersId: string[] = []
-let moreThan3users = true
+let moreThan3users = false
 
 const client = new Client({
 	intents: [
@@ -59,7 +59,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 		} else {
 			if (moreThan3users && usersId.length === 1) {
 				updateGayOfTheDayRole(newState.guild, usersId[0])
-				// moreThan3users = false
+				moreThan3users = false
 			}
 			if (indexToDelete !== -1) usersId.splice(indexToDelete, 1)
 		}
