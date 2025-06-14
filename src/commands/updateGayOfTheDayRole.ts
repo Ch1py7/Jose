@@ -22,7 +22,6 @@ export const updateGayOfTheDayRole = async (guild: Guild, newUserId: string) => 
 			const { data, error } = await supabase
 				.from('gay_role_assignments')
 				.select('*')
-				.eq('user_id', newUserId)
 				.eq('guild_id', guild.id)
 
 			if (!error) {
