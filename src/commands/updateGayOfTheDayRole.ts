@@ -1,4 +1,5 @@
 import { supabase } from '@/supabase/client'
+import { DAY } from '@/utils/constants'
 import type { Client, Guild } from 'discord.js'
 
 export const updateGayOfTheDayRole = async (guild: Guild, newUserId: string) => {
@@ -43,11 +44,6 @@ export const updateGayOfTheDayRole = async (guild: Guild, newUserId: string) => 
 		}
 	}
 }
-
-const SECOND = 1000
-const MINUTE = SECOND * 60
-const HOUR = MINUTE * 60
-const DAY = HOUR * 24
 
 export const scheduleRemoval = async (
 	client: Client,
