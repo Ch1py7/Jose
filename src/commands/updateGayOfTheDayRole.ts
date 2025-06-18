@@ -19,7 +19,6 @@ export const updateGayOfTheDayRole = async (guild: Guild, newUserId: string) => 
 	if (member && role) {
 		try {
 			await member.roles.add(role)
-			await member.setNickname('GAY OF THE DAY')
 			console.log(`- ${member.user.tag} has the "${role.name}" role in "${guild.name}" server`)
 			const { data, error } = await supabase
 				.from('gay_role_assignments')
@@ -72,7 +71,6 @@ export const scheduleRemoval = async (
 				const role = guild.roles.cache.find((r) => r.name === 'GAY OF THE DAY')
 				const member = await guild.members.fetch(userId)
 				if (role) await member.roles.remove(role)
-				await member.setNickname('')
 				console.log(`Removed 'GAY OF THE DAY' role from ${member.user.tag}`)
 
 				await supabase

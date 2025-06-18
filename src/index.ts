@@ -1,13 +1,14 @@
 import { Client, Events, GatewayIntentBits } from 'discord.js'
-import { scheduleRemoval, updateGayOfTheDayRole } from './commands/updateGayOfTheDayRole'
+import { scheduleRemoval } from './commands/updateGayOfTheDayRole'
 import { config } from './config'
 import { deployCommands } from './deployCommands'
+import { Guilds } from './guilds'
 import { supabase } from './supabase/client'
 import { DAY } from './utils/constants'
 import { getRemainingTime } from './utils/getRemainingTime'
 import { getUsersWithRole } from './utils/getUsersWithRole'
 
-const guilds = new Map<string, { usersId: string[]; moreThan3: boolean }>()
+const guilds = new Guilds()
 
 const client = new Client({
 	intents: [
@@ -24,6 +25,16 @@ client.once(Events.ClientReady, async (client) => {
 
 	for (const guild of client.guilds.cache.values()) {
 		await deployCommands({ guildId: guild.id })
+
+		guilds.addGuild(guild.id)
+
+		const voiceChannels = guild.channels.cache.filter(
+			(channel) => channel.isVoiceBased() && channel.members.size > 0
+		)
+
+		for (const [_, channel] of voiceChannels) {
+			guilds.addChannelToGuild(guild.id, channel).addUsersToChannel(guild.id, channel)
+		}
 	}
 
 	const { data: assignments, error } = await supabase.from('gay_role_assignments').select('*')
@@ -47,43 +58,28 @@ client.on(Events.GuildCreate, async (guild) => {
 		mentionable: true,
 		reason: 'You were the last person to leave the voice channel.',
 	})
-	guilds.set(guild.id, { usersId: [], moreThan3: false })
+	guilds.addGuild(guild.id)
 })
 
 client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 	const user = newState.member?.user
-	const guildId = oldState.guild.id
+	const guild = oldState.guild
 
 	if (!user) return
 
-	if (!guilds.has(guildId)) {
-		guilds.set(guildId, { usersId: [], moreThan3: false })
-	}
+	guilds.addGuild(guild.id)
 
-	const guildState = guilds.get(guildId)!
-	const usersId = [...guildState.usersId]
-	let moreThan3 = guildState.moreThan3
-
-	if (!oldState.channel && newState.channel) {
-		if (!usersId.includes(user.id)) {
-			usersId.push(user.id)
-		}
-		if (usersId.length >= 3) {
-			moreThan3 = true
-		}
-		guilds.set(guildId, { usersId, moreThan3 })
-	} else if (oldState.channel && !newState.channel) {
-		const index = usersId.indexOf(user.id)
-		if (usersId.length > 1 && index !== -1) {
-			usersId.splice(index, 1)
-		} else {
-			if (moreThan3 && usersId.length === 1) {
-				await updateGayOfTheDayRole(newState.guild, usersId[0])
-				moreThan3 = false
-			}
-			if (index !== -1) usersId.splice(index, 1)
-			guilds.set(guildId, { usersId, moreThan3 })
-		}
+	if (!oldState.channelId && newState.channelId) {
+		guilds
+			.addChannelToGuild(guild.id, newState.channel!)
+			.addUsersToChannel(guild.id, newState.channel!)
+	} else if (oldState.channelId && !newState.channelId) {
+		await guilds.removeUserFromChannel(guild, oldState.channelId, user)
+	} else if (oldState.channelId && newState.channelId) {
+		guilds
+			.addChannelToGuild(guild.id, newState.channel!)
+			.addUsersToChannel(guild.id, newState.channel!)
+		await guilds.removeUserFromChannel(guild, oldState.channelId, user)
 	}
 })
 
