@@ -1,7 +1,7 @@
 import type { Collection, Guild, GuildBasedChannel, GuildMember, User } from 'discord.js'
 import { updateGayOfTheDayRole } from './commands/updateGayOfTheDayRole'
 
-const minUsers = 2
+const minUsers = 3
 
 export class Guilds {
 	private _guilds = new Map<
