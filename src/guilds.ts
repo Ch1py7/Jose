@@ -87,13 +87,19 @@ export class Guilds {
 
 		if (channel.moreThan3 && usersId.length === 1) {
 			await updateGayOfTheDayRole(guild, usersId[0])
-		}
 
-		channelMap.set(channelId, {
-			usersId,
-			name: channel.name,
-			moreThan3: usersId.length >= minUsers,
-		})
+			channelMap.set(channelId, {
+				usersId,
+				name: channel.name,
+				moreThan3: usersId.length >= minUsers,
+			})
+		} else {
+			channelMap.set(channelId, {
+				usersId,
+				name: channel.name,
+				moreThan3: channel.moreThan3,
+			})
+		}
 
 		if (usersId.length === 0) {
 			this._removeChannelFromGuild(guild, channelId)
