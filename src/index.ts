@@ -1,4 +1,4 @@
-import { Client, Events, GatewayIntentBits } from 'discord.js'
+import { AuditLogEvent, Client, Events, GatewayIntentBits } from 'discord.js'
 import { scheduleRemoval } from './commands/updateGayOfTheDayRole'
 import { config } from './config'
 import { deployCommands } from './deployCommands'
@@ -107,6 +107,48 @@ client.on(Events.InteractionCreate, async (interaction) => {
 		} else {
 			await interaction.reply('No gay role assigned yet!')
 		}
+	}
+})
+
+client.on(Events.GuildMemberUpdate, async (oldMember, newMember) => {
+	const clientId = client.user?.id
+	if (!clientId) return
+	const guild = newMember.guild
+	const gayRole = guild.roles.cache.find((role) => role.name === 'GAY OF THE DAY')
+	if (!gayRole) return
+
+	const hadRole = oldMember.roles.cache.has(gayRole.id)
+	const hasRole = newMember.roles.cache.has(gayRole.id)
+
+	if (hadRole === hasRole) return
+
+	const auditLogs = await guild.fetchAuditLogs({
+		limit: 1,
+		type: AuditLogEvent.MemberRoleUpdate,
+	})
+
+	const entry = auditLogs.entries.first()
+	if (entry && entry.executor?.id === clientId) return
+
+	const { data: assignment, error } = await supabase
+		.from('gay_role_assignments')
+		.select('user_id')
+		.eq('guild_id', guild.id)
+		.single()
+
+	if (!assignment || error) return
+
+	const realUserId = assignment.user_id
+	const realMember = await guild.members.fetch(realUserId)
+	if (!realMember) return
+
+	for (const member of guild.members.cache.values()) {
+		if (member.roles.cache.has(gayRole.id) && member.id !== realUserId) {
+			await member.roles.remove(gayRole)
+		}
+	}
+	if (!realMember.roles.cache.has(gayRole.id)) {
+		await realMember.roles.add(gayRole)
 	}
 })
 
