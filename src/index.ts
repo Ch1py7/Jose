@@ -1,4 +1,5 @@
 import { AuditLogEvent, Client, Events, GatewayIntentBits } from 'discord.js'
+import { commands } from './commands'
 import { scheduleRemoval } from './commands/updateGayOfTheDayRole'
 import { config } from './config'
 import { deployCommands } from './deployCommands'
@@ -96,16 +97,27 @@ client.on(Events.InteractionCreate, async (interaction) => {
 		.from('gay_role_assignments')
 		.select('*')
 		.eq('guild_id', guildId)
+		.single()
 
 	if (interaction.commandName === 'ping') {
-		await interaction.reply('🏓 Pong!')
+		await commands.ping.execute(interaction)
 	} else if (interaction.commandName === 'time') {
-		if (assignments && assignments.length > 0) {
-			const removingAt = new Date(assignments[0].assigned_at).getTime() + DAY
+		if (assignments) {
+			const removingAt = new Date(assignments.assigned_at).getTime() + DAY
 			const remainingTime = getRemainingTime(removingAt)
-			await interaction.reply(`The remaining gay time is: ${remainingTime}`)
+			await commands.time.execute(interaction, remainingTime)
 		} else {
 			await interaction.reply('No gay role assigned yet!')
+		}
+	} else if (interaction.commandName === 'gay') {
+		if (guildId === '1171702986980982816') {
+			await commands.actualGay.execute(interaction, '318847124093534208')
+		} else {
+			if (assignments) {
+				await commands.actualGay.execute(interaction, assignments.user_id)
+			} else {
+				await interaction.reply('No gay role assigned yet!')
+			}
 		}
 	}
 })
