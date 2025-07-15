@@ -39,7 +39,9 @@ export class Guilds {
 
 		const usersId: string[] = []
 		for (const [_, member] of channel.members as Collection<string, GuildMember>) {
-			usersId.push(member.id)
+			if (!member.user.bot) {
+				usersId.push(member.id)
+			}
 		}
 
 		channelMap.set(channel.id, {
@@ -59,7 +61,7 @@ export class Guilds {
 		if (!channel) return this
 
 		const usersId = [...channel.usersId]
-		if (!usersId.includes(user.id)) {
+		if (!usersId.includes(user.id) && !user.bot) {
 			usersId.push(user.id)
 		}
 
