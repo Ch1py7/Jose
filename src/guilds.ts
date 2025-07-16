@@ -87,21 +87,20 @@ export class Guilds {
 
 		usersId.splice(index, 1)
 
-		if (channel.moreThan3 && usersId.length === 1) {
-			await updateGayOfTheDayRole(guild, usersId[0])
-
-			channelMap.set(channelId, {
-				usersId,
-				name: channel.name,
-				moreThan3: usersId.length >= minUsers,
-			})
-		} else {
-			channelMap.set(channelId, {
-				usersId,
-				name: channel.name,
-				moreThan3: channel.moreThan3,
-			})
+		const actualChannel = guild.channels.cache.get(channelId) as GuildBasedChannel
+		if (actualChannel && 'members' in actualChannel) {
+			const actualMembers = Array.from((actualChannel.members as Collection<string, GuildMember>).values()).filter(member => !member.user.bot)
+			
+			if (channel.moreThan3 && actualMembers.length === 1) {
+				await updateGayOfTheDayRole(guild, actualMembers[0].id)
+			}
 		}
+
+		channelMap.set(channelId, {
+			usersId,
+			name: channel.name,
+			moreThan3: channel.moreThan3 && usersId.length === 1 ? false : true,
+		})
 
 		if (usersId.length === 0) {
 			this._removeChannelFromGuild(guild, channelId)
