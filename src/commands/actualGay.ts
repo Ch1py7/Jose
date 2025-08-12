@@ -1,9 +1,7 @@
-import { type CommandInteraction, SlashCommandBuilder } from "discord.js";
+import { type CommandInteraction, SlashCommandBuilder } from 'discord.js'
 
-export const data = new SlashCommandBuilder()
-  .setName("gay")
-  .setDescription("See the actual gay.");
+export const data = new SlashCommandBuilder().setName('gay').setDescription('See the actual gay.')
 
-export async function execute(interaction: CommandInteraction, userId: string) {
-  return interaction.reply(`<@${userId}> is the gay of today.`);
+export async function execute(interaction: CommandInteraction, userId: string): Promise<void> {
+	await interaction.reply(`<@${userId}> is the gay of today.`)
 }

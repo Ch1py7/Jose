@@ -1,6 +1,7 @@
 import type { Client } from 'discord.js'
+import { ROLE_NAME } from './constants'
 
-export const getUsersWithRole = async (client: Client, roleName = 'GAY OF THE DAY') => {
+export const getUsersWithRole = async (client: Client, roleName = ROLE_NAME): Promise<void> => {
 	for (const [guildId, guild] of client.guilds.cache) {
 		try {
 			const fullGuild = await client.guilds.fetch(guildId)
